@@ -1,6 +1,6 @@
 mapboxgl.accessToken = mapToken;
 const map = new mapboxgl.Map({
-  container: "map",
+  container: 'cluster-map',
   style: "mapbox://styles/mapbox/light-v10",
   center: [-103.59179687498357, 40.66995747013945],
   zoom: 3,
@@ -68,6 +68,8 @@ map.on("load", function () {
       "circle-stroke-color": "#fff",
     },
   });
+
+  map.addControl(new mapboxgl.NavigationControl(), 'bottom-left');
 
   // inspect a cluster on click
   map.on("click", "clusters", function (e) {
