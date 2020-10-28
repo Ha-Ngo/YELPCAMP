@@ -2,6 +2,7 @@ if(process.env.NODE_ENV !== 'production') {
     require('dotenv').config();
 }
 
+
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
@@ -19,15 +20,18 @@ const LocalStrategy = require('passport-local');
 const User = require('./models/user');
 const helmet = require('helmet');
 
+const MongoDBStore = require('connect-mongo')(session);
+
 const mongoSanitize = require('express-mongo-sanitize');
 
 
 const campgroundRoutes =require('./routes/campgrounds');
 const reviewRoutes = require('./routes/reviews');
+const dbUrl = process.env.DB_URL || 'mongodb://localhost:27017/yelp-camp';
 const userRoutes = require('./routes/users');
 const expressMongoSanitize = require('express-mongo-sanitize');
-
-mongoose.connect('mongodb://localhost:27017/yelp-camp', {
+//'mongodb://localhost:27017/yelp-camp'
+mongoose.connect(dbUrl, {
     useNewUrlParser: true,
     useCreateIndex: true,
     useUnifiedTopology: true,
@@ -51,9 +55,20 @@ app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname,'public')));
 app.use(mongoSanitize());
 
+const secret = process.env.SECRET || 'thisshouldbebettersecret!';
+const store = new MongoDBStore ({
+    url: dbUrl,
+    secret,
+    touchAfter: 24 * 60 * 60
+});
+
+store.on("error", function(e) {
+    console.log("Session store error", e)
+})
 const sessionConfig = {
+    store,
     name: 'session',
-    secret: 'thisshouldbebettersecret!',
+    secret,
     resave: false,
     saveUninitialized: true,
     cookie: {
@@ -105,7 +120,7 @@ app.use(
                 "'self'",
                 "blob:",
                 "data:",
-                "https://res.cloudinary.com/douqbebwk/", //SHOULD MATCH YOUR CLOUDINARY ACCOUNT! 
+                "https://res.cloudinary.com/dc3rs32ju/", //SHOULD MATCH YOUR CLOUDINARY ACCOUNT! 
                 "https://images.unsplash.com/",
             ],
             fontSrc: ["'self'", ...fontSrcUrls],
